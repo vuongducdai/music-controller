@@ -46,14 +46,16 @@ const CreateRoomPage = () => {
   const onSubmit = async (formValues) => {
     createRoom(formValues)
       .then(function (response) {
+        console.log(
+          '🚀 ~ file: CreateRoomPage.js:49 ~ response',
+          response.data.code
+        );
+
         navigate(`/room/${response.data.code}`);
       })
       .catch(function (error) {
         // handle error
         console.log(error);
-      })
-      .then(function () {
-        // always executed
       });
   };
 

@@ -1,6 +1,7 @@
 import { Button, ButtonGroup, Stack, styled, Typography } from '@mui/material';
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useSWR from 'swr';
 
 const Container = styled('div')(({ theme }) => ({
   display: 'flex',
@@ -18,6 +19,11 @@ const StyledStack = styled(Stack)(({ theme }) => ({
 
 const HomePage = () => {
   const navigate = useNavigate();
+  const { data, isValidating } = useSWR('/user-room');
+
+  useEffect(() => {
+    if (data?.code) navigate(`/room/${data?.code}`);
+  }, [data]);
 
   const redirectToJoinPage = () => {
     navigate('/join');
@@ -26,6 +32,8 @@ const HomePage = () => {
   const redirectToCreatePage = () => {
     navigate('/create');
   };
+
+  if (isValidating) return <div>Loading...</div>;
 
   return (
     <Container>

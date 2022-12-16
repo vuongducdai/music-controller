@@ -4,6 +4,7 @@ from .serializers import RoomSerializer, CreateRoomSerializer, JoinRoomSerialize
 from .models import Room
 from rest_framework.views import APIView
 from rest_framework.response import Response
+from django.http import JsonResponse
 
 
 
@@ -21,13 +22,8 @@ class JoinRoom(APIView):
       request.session.create()
 
     serializer = self.serializer_class(data=request.data)
-    print(serializer, 'serializer')
-    print(serializer.is_valid(), 'is valid')
-
-
     if serializer.is_valid():
       code = serializer.data['code']
-      print(code, 'code')
       queryset = Room.objects.filter(code=code)
       if queryset.exists() > 0:
         request.session['room_code'] = code
@@ -81,9 +77,34 @@ class CreateRoom(APIView):
       else:
         room = Room(host=host, guest_can_pause=guest_can_pause, votes_to_skip=votes_to_skip)
         room.save()
-        return Response(status=status.HTTP_201_CREATED)
+        return Response(RoomSerializer(room).data, status=status.HTTP_201_CREATED)
 
     return Response({'Bad Request': 'Invalid data...'}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class UserInRoom(APIView):
+  def get(self, request, format=None):
+    if not request.session.exists(request.session.session_key):
+      request.session.create()
+    
+    data = {
+      'code':request.session.get('room_code')
+    }
+    return JsonResponse(data, status=status.HTTP_200_OK)
+
+class LeaveRoom(APIView):
+  def get(self, request, format=None):
+    if 'room_code' in request.session:
+      request.session.pop('room_code')
+      host_id = request.session.session_key
+      room_result = Room.objects.filter(host=host_id)
+      if len(room_result) > 0:
+        room = room_result[0]
+        room.delete()
+
+    request.session['room_code'] = None
+    return Response(status=status.HTTP_200_OK)
+
 
 
 
