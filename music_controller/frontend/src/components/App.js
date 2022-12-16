@@ -1,12 +1,16 @@
+import axios from 'axios';
 import React from 'react';
 import * as ReactDOM from 'react-dom';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import HomePage from './HomePage';
+import { SWRConfig } from 'swr';
+import { axiosClient } from '../../services/api/room';
 import CreateRoomPage from './CreateRoomPage';
+import HomePage from './HomePage';
+import RoomDetailsPage from './RoomDetailsPage';
 import RoomJoinPage from './RoomJoinPage';
 
 const App = () => {
-  return <div>Appssssss</div>;
+  return <HomePage />;
 };
 
 const router = createBrowserRouter([
@@ -15,22 +19,29 @@ const router = createBrowserRouter([
     element: <App />,
   },
   {
-    path: 'home',
-    element: <HomePage />,
-  },
-  {
-    path: 'home/create',
+    path: 'create',
     element: <CreateRoomPage />,
   },
   {
-    path: 'home/join',
+    path: 'join',
     element: <RoomJoinPage />,
+  },
+  {
+    path: 'room/:roomCode',
+    element: <RoomDetailsPage />,
   },
 ]);
 
 const app = ReactDOM.createRoot(document.getElementById('app')).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <SWRConfig
+      value={{
+        fetcher: (resource, init) =>
+          axiosClient(resource, init).then((res) => res.data),
+      }}
+    >
+      <RouterProvider router={router} />
+    </SWRConfig>
   </React.StrictMode>
 );
 
